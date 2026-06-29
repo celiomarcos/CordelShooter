@@ -31,8 +31,16 @@ class Entity(ABC):
     def is_alive(self):
         return self.health > 0
 
+    @property
+    def hitbox(self):
+        """Caixa de colisao reduzida, focada no desenho (ignora a borda
+        transparente do sprite). A reducao por entidade vem de settings."""
+        shrink = settings.HITBOX_SHRINK.get(self.name, settings.HITBOX_SHRINK_DEFAULT)
+        return self.rect.inflate(-int(self.rect.width * shrink),
+                                 -int(self.rect.height * shrink))
+
     def collides_with(self, other):
-        return self.rect.colliderect(other.rect)
+        return self.hitbox.colliderect(other.hitbox)
 
     @abstractmethod
     def update(self):

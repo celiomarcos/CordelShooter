@@ -65,7 +65,7 @@ class Menu:
             hud.draw_text(self.window, label, 30, color, center=(cx, 240 + i * 48))
 
         # Comandos de controle (exigencia da atividade)
-        box_y = settings.WIN_HEIGHT - 120
+        box_y = settings.WIN_HEIGHT - 140
         pygame.draw.rect(self.window, settings.COLOR_DARK,
                          (cx - 230, box_y - 10, 460, 110), border_radius=8)
         hud.draw_text(self.window, "CONTROLES", 20, settings.COLOR_YELLOW,
@@ -74,9 +74,9 @@ class Menu:
             hud.draw_text(self.window, line, 18, settings.COLOR_WHITE,
                           center=(cx, box_y + 34 + i * 24))
 
-        # credito discreto do desenvolvedor
+        # credito discreto do desenvolvedor (acima da moldura de cordel)
         hud.draw_text(self.window, "developed by CelioSantiago  -  RU 5233696",
-                      13, (150, 150, 162), center=(cx, settings.WIN_HEIGHT - 9))
+                      13, (170, 170, 182), center=(cx, settings.WIN_HEIGHT - 24))
 
         # mensagem do easter egg (Modo Cangaco)
         if self._flash > 0 or CHEATS.cangaco:

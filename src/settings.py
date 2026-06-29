@@ -121,6 +121,24 @@ CONTROLS_TEXT = (
 )
 
 # ----------------------------------------------------------------------
+# Hitbox (colisao)
+# ----------------------------------------------------------------------
+# Fracao da largura/altura removida da caixa de colisao de cada entidade.
+# Os sprites tem area transparente em volta; reduzir a hitbox faz o acerto
+# bater no desenho, e nao no espaco vazio. 0 = caixa cheia; 0.5 = metade.
+HITBOX_SHRINK_DEFAULT = 0.25
+HITBOX_SHRINK = {
+    "hero": 0.5,            # bem justo: so o corpo do cangaceiro
+    "saci": 0.3,
+    "mula": 0.3,
+    "boitata": 0.3,
+    "cuca": 0.32,
+    "hero_bullet": 0.15,
+    "monster_bullet": 0.25,
+    "boss_bullet": 0.2,
+}
+
+# ----------------------------------------------------------------------
 # Condicoes de vitoria / derrota
 # ----------------------------------------------------------------------
 # Vitoria: derrotar a Cuca (chefe). Derrota: vida do heroi chega a zero.
