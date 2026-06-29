@@ -1,0 +1,13 @@
+# Ambiente / build
+.venv/
+build/
+dist/
+*.spec
+__pycache__/
+*.pyc
+
+# Banco do ranking gerado em runtime
+ranking.db
+
+# Assets sao gerados por tools/gen_assets.py
+asset/
