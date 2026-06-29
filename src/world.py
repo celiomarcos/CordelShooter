@@ -99,12 +99,8 @@ class World:
             if ent is self.hero:
                 continue
             ent.update()
-            if isinstance(ent, Monster):
-                enemy_shot = ent.try_shoot()
-                if enemy_shot is not None:
-                    self.entities.append(enemy_shot)
-            elif isinstance(ent, Boss):
-                for enemy_shot in ent.try_shoot():
+            if isinstance(ent, (Monster, Boss)):
+                for enemy_shot in ent.try_shoot(self.hero):
                     self.entities.append(enemy_shot)
 
         # colisoes e limpeza

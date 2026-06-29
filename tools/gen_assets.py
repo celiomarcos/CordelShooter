@@ -15,6 +15,7 @@ estejam faltando, garantindo que o jogo sempre tenha seus recursos.
 """
 import math
 import os
+import random
 
 import pygame
 
@@ -175,63 +176,138 @@ def draw_boss_bullet():
 # ---------------------------------------------------------------------------
 # Cenarios
 # ---------------------------------------------------------------------------
-def _gradient(w, h, top, bottom):
+def _lerp(c1, c2, t):
+    return (int(c1[0] + (c2[0] - c1[0]) * t),
+            int(c1[1] + (c2[1] - c1[1]) * t),
+            int(c1[2] + (c2[2] - c1[2]) * t))
+
+
+def _vgradient(w, h, stops):
+    """Gradiente vertical com varias paradas: stops = [(pos0a1, cor), ...]."""
     s = _new(w, h)
+    stops = sorted(stops)
     for y in range(h):
         t = y / max(1, h - 1)
-        col = (int(top[0] + (bottom[0] - top[0]) * t),
-               int(top[1] + (bottom[1] - top[1]) * t),
-               int(top[2] + (bottom[2] - top[2]) * t))
-        pygame.draw.line(s, col, (0, y), (w, y))
+        lo, hi = stops[0], stops[-1]
+        for i in range(len(stops) - 1):
+            if stops[i][0] <= t <= stops[i + 1][0]:
+                lo, hi = stops[i], stops[i + 1]
+                break
+        span = (hi[0] - lo[0]) or 1
+        pygame.draw.line(s, _lerp(lo[1], hi[1], (t - lo[0]) / span), (0, y), (w, y))
     return s
 
 
 def draw_sky(w, h):
-    """Ceu de poente do sertao com estrelas."""
-    s = _gradient(w, h, AZUL_TOPO, LARANJA_POENTE)
-    # estrelas
-    import random
+    """Ceu de poente do sertao: gradiente em camadas, via-lactea, estrelas,
+    lua com halo, nuvens e morros distantes ao fundo (horizonte)."""
+    s = _vgradient(w, h, [
+        (0.00, (12, 12, 42)),
+        (0.42, (44, 32, 88)),
+        (0.68, (138, 74, 92)),
+        (0.82, (238, 150, 74)),
+        (1.00, (74, 40, 44)),
+    ])
     rng = random.Random(7)
-    for _ in range(70):
+
+    # via-lactea (faixa difusa diagonal)
+    for _ in range(150):
         x = rng.randint(0, w)
-        y = rng.randint(0, int(h * 0.55))
-        r = rng.choice((1, 1, 2))
-        pygame.draw.circle(s, BRANCO, (x, y), r)
-    # lua
-    pygame.draw.circle(s, AMARELO, (int(w * 0.78), int(h * 0.18)), 26)
-    pygame.draw.circle(s, LARANJA_POENTE, (int(w * 0.74), int(h * 0.16)), 22)
+        y = int(h * 0.10 + (x / w) * h * 0.16 + rng.randint(-16, 16))
+        if 0 <= y < int(h * 0.6):
+            pygame.draw.circle(s, (200, 200, 255), (x, y), 1)
+
+    # estrelas de brilhos e cores variadas
+    for _ in range(130):
+        x, y = rng.randint(0, w), rng.randint(0, int(h * 0.62))
+        size = rng.choice((1, 1, 1, 2, 2, 3))
+        col = rng.choice([(240, 240, 230), (255, 240, 200), (200, 210, 255)])
+        pygame.draw.circle(s, col, (x, y), size)
+        if size == 3:
+            glow = _new(10, 10)
+            pygame.draw.circle(glow, (255, 255, 220, 70), (5, 5), 5)
+            s.blit(glow, (x - 5, y - 5))
+
+    # lua com halo e crateras
+    mx, my = int(w * 0.78), int(h * 0.20)
+    for r, a in ((56, 26), (44, 38), (32, 58)):
+        halo = _new(2 * r, 2 * r)
+        pygame.draw.circle(halo, (255, 245, 200, a), (r, r), r)
+        s.blit(halo, (mx - r, my - r))
+    pygame.draw.circle(s, (248, 242, 205), (mx, my), 24)
+    for cx, cy, cr in ((mx - 8, my - 6, 4), (mx + 6, my + 5, 6), (mx + 2, my - 10, 3)):
+        pygame.draw.circle(s, (228, 220, 178), (cx, cy), cr)
+
+    # nuvens difusas perto do horizonte
+    for _ in range(5):
+        cw, ch = rng.randint(120, 240), rng.randint(16, 30)
+        cloud = _new(cw, ch)
+        pygame.draw.ellipse(cloud, (60, 40, 70, 70), (0, 0, cw, ch))
+        s.blit(cloud, (rng.randint(-40, w), rng.randint(int(h * 0.55), int(h * 0.72))))
+
+    # morros distantes (horizonte) em duas camadas
+    base = int(h * 0.80)
+    far = [(x, base + int(math.sin(x / 120.0) * 14)) for x in range(0, w + 40, 40)]
+    pygame.draw.polygon(s, (40, 30, 58), [(0, h)] + far + [(w, h)])
+    near = [(x, base + 38 + int(math.sin(x / 90.0 + 1.5) * 18)) for x in range(0, w + 40, 40)]
+    pygame.draw.polygon(s, (26, 20, 40), [(0, h)] + near + [(w, h)])
     return s
 
 
 def draw_caatinga(w, h):
-    """Camada de silhueta da caatinga (mandacarus e morros) com fundo transparente."""
+    """Primeiro plano que rola: chao da caatinga com mandacarus e arbustos.
+    Transparente acima do rodape para fazer parallax sobre o ceu."""
     s = _new(w, h)
-    base = h - 90
-    pygame.draw.polygon(s, AZUL_NOITE,
-                        [(0, h), (0, base), (w * 0.2, base - 30),
-                         (w * 0.45, base + 10), (w * 0.7, base - 40),
-                         (w, base), (w, h)])
-    # mandacarus (cactos)
-    for cx in range(60, w, 150):
-        pygame.draw.rect(s, PRETO, (cx, base - 40, 8, 50))
-        pygame.draw.rect(s, PRETO, (cx - 10, base - 24, 8, 18))
-        pygame.draw.rect(s, PRETO, (cx + 10, base - 30, 8, 22))
+    base = h - 70
+    ridge = [(x, base + int(math.sin(x / 70.0) * 10)) for x in range(0, w + 35, 35)]
+    pygame.draw.polygon(s, (20, 16, 30), [(0, h)] + ridge + [(w, h)])
+    pygame.draw.rect(s, (14, 11, 22), (0, h - 26, w, 26))  # rodape solido (esconde emendas)
+
+    rng = random.Random(13)
+    dark = (12, 10, 18)
+    for cx in range(40, w, 120):
+        cx += rng.randint(-15, 15)
+        ht = rng.randint(34, 60)
+        top = base - ht
+        pygame.draw.rect(s, dark, (cx, top, 9, ht))
+        if rng.random() < 0.8:
+            ay = top + rng.randint(8, 18)
+            pygame.draw.rect(s, dark, (cx - 11, ay, 9, 16))
+            pygame.draw.rect(s, dark, (cx - 11, ay - 6, 5, 8))
+        if rng.random() < 0.8:
+            by = top + rng.randint(8, 18)
+            pygame.draw.rect(s, dark, (cx + 9, by, 9, 16))
+            pygame.draw.rect(s, dark, (cx + 13, by - 6, 5, 8))
+    for _ in range(10):  # arbustos secos
+        pygame.draw.circle(s, (16, 13, 24),
+                           (rng.randint(0, w), base + rng.randint(-2, 8)),
+                           rng.randint(5, 11))
     return s
 
 
 def draw_menu_bg(w, h):
     s = draw_sky(w, h)
     s.blit(draw_caatinga(w, h), (0, 0))
-    # faixa decorativa de cordel no topo
-    pygame.draw.rect(s, AZUL_NOITE, (0, 0, w, 6))
-    pygame.draw.rect(s, AMARELO, (0, 6, w, 2))
+    # molduras de cordel (faixas + furos amarelos)
+    pygame.draw.rect(s, (20, 16, 40), (0, 0, w, 8))
+    pygame.draw.rect(s, (20, 16, 40), (0, h - 8, w, 8))
+    pygame.draw.rect(s, AMARELO, (0, 8, w, 2))
+    pygame.draw.rect(s, AMARELO, (0, h - 10, w, 2))
+    for x in range(0, w, 28):
+        pygame.draw.circle(s, AMARELO, (x, 4), 2)
+        pygame.draw.circle(s, AMARELO, (x, h - 4), 2)
     return s
 
 
 def draw_ranking_bg(w, h):
-    s = _gradient(w, h, AZUL_NOITE, AZUL_TOPO)
+    s = _vgradient(w, h, [(0.0, (16, 14, 34)), (1.0, (42, 30, 72))])
+    rng = random.Random(21)
+    for _ in range(60):
+        pygame.draw.circle(s, (180, 180, 210),
+                           (rng.randint(0, w), rng.randint(0, h)), 1)
     pygame.draw.rect(s, AMARELO, (0, 0, w, 4))
     pygame.draw.rect(s, AMARELO, (0, h - 4, w, 4))
+    pygame.draw.rect(s, AMARELO, (20, 20, w - 40, h - 40), 2)
     return s
 
 

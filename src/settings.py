@@ -99,10 +99,10 @@ SCORE_VALUE = {
 # cadencia de tiro (em frames; quanto menor, mais rapido)
 SHOOT_COOLDOWN = {
     "hero": 12,
-    "saci": 90,
-    "mula": 70,
-    "boitata": 80,
-    "cuca": 35,
+    "saci": 75,      # tiros mirados, espacados
+    "mula": 115,     # rajada tripla, pesada e mais lenta
+    "boitata": 100,  # leque de fogo de tempos em tempos
+    "cuca": 50,      # chefe: padroes alternados
 }
 
 # ----------------------------------------------------------------------

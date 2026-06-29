@@ -3,15 +3,17 @@
 """
 Projeteis do jogo.
 
-HeroBullet sobe pela tela (tiro do cangaceiro). MonsterBullet e
-BossBullet descem em direcao ao heroi. Todos herdam de Entity.
+HeroBullet sobe em linha reta. Os tiros inimigos (MonsterBullet e
+BossBullet) usam um vetor de velocidade (vx, vy), o que permite tiros
+retos, diagonais, em leque ou mirados no heroi. A posicao e guardada em
+ponto flutuante para que trajetorias diagonais fiquem suaves.
 """
 from src import settings
 from src.entity import Entity
 
 
 class HeroBullet(Entity):
-    """Tiro do heroi: viaja para cima."""
+    """Tiro do heroi: viaja para cima em linha reta."""
 
     def __init__(self, position):
         super().__init__(settings.HERO_BULLET, position)
@@ -23,19 +25,32 @@ class HeroBullet(Entity):
 
 
 class MonsterBullet(Entity):
-    """Tiro dos monstros: viaja para baixo."""
+    """Tiro inimigo com vetor de velocidade.
 
-    def __init__(self, position, name=settings.MONSTER_BULLET):
+    velocity = (vx, vy). Se vy for None, usa a velocidade padrao da
+    entidade (descendo em linha reta).
+    """
+
+    def __init__(self, position, velocity=(0, None), name=settings.MONSTER_BULLET):
         super().__init__(name, position)
+        vx, vy = velocity
+        self.vx = float(vx)
+        self.vy = float(vy if vy is not None else self.speed)
+        self._fx = float(self.rect.centerx)
+        self._fy = float(self.rect.centery)
 
     def update(self):
-        self.rect.y += self.speed
-        if self.rect.top > settings.WIN_HEIGHT:
+        self._fx += self.vx
+        self._fy += self.vy
+        self.rect.center = (round(self._fx), round(self._fy))
+        # morre ao sair por qualquer borda da tela
+        if (self.rect.top > settings.WIN_HEIGHT or self.rect.bottom < 0 or
+                self.rect.right < 0 or self.rect.left > settings.WIN_WIDTH):
             self.health = 0
 
 
 class BossBullet(MonsterBullet):
-    """Tiro do chefe: mais forte, tambem desce."""
+    """Tiro do chefe: mais forte; tambem usa vetor de velocidade."""
 
-    def __init__(self, position):
-        super().__init__(position, name=settings.BOSS_BULLET)
+    def __init__(self, position, velocity=(0, None)):
+        super().__init__(position, velocity, name=settings.BOSS_BULLET)
