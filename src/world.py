@@ -18,6 +18,7 @@ import pygame
 from src import hud, settings
 from src.arbiter import Arbiter
 from src.boss import Boss
+from src.cheats import CHEATS
 from src.hero import Hero
 from src.monster import Monster
 from src.spawner import Spawner
@@ -28,6 +29,10 @@ class World:
         self.window = window
         self.background = Spawner.background()
         self.hero = Spawner.hero()
+        if CHEATS.cangaco:  # easter egg: Modo Cangaco
+            self.hero.cangaco = True
+            self.hero.health = 200
+            self.hero.max_health = 200
         self.entities = [self.hero]
         self.score = 0
         self.time_left = settings.WAVE_DURATION_MS
@@ -88,10 +93,9 @@ class World:
         for layer in self.background:
             layer.update()
 
-        # heroi e seu tiro
+        # heroi e seu(s) tiro(s)
         self.hero.update()
-        shot = self.hero.try_shoot()
-        if shot is not None:
+        for shot in self.hero.try_shoot():
             self.entities.append(shot)
 
         # demais entidades (snapshot: novos tiros nao sao iterados neste frame)
@@ -120,6 +124,9 @@ class World:
         # vida do heroi
         hud.draw_text(self.window, "VIDA", 16, settings.COLOR_WHITE, topleft=(10, 8))
         hud.draw_health_bar(self.window, 60, 10, self.hero.health, self.hero.max_health)
+        if self.hero.cangaco:  # indicador do easter egg
+            hud.draw_text(self.window, "CANGACO", 13, settings.COLOR_YELLOW,
+                          topleft=(60, 28), bold=True)
         # pontuacao
         hud.draw_text(self.window, f"PONTOS: {self.score}", 20, settings.COLOR_YELLOW,
                       topleft=(settings.WIN_WIDTH - 220, 8), bold=True)

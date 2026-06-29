@@ -12,6 +12,8 @@ import pygame
 
 from src import hud, settings
 from src.assets import load_image
+from src.cheats import CHEATS
+from src.konami import KonamiCode
 from src.ranking import ScoreDB
 
 
@@ -21,6 +23,8 @@ class Menu:
         self.bg = load_image("menu_bg.png")
         self.ranking_bg = load_image("ranking_bg.png")
         self.selected = 0
+        self.konami = KonamiCode()
+        self._flash = 0  # frames restantes da mensagem do easter egg
 
     # ------------------------------------------------------------------
     def run(self):
@@ -34,6 +38,10 @@ class Menu:
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
+                    # easter egg: codigo Konami
+                    if self.konami.push(event.key):
+                        CHEATS.cangaco = True
+                        self._flash = 210
                     if event.key in (pygame.K_DOWN, pygame.K_s):
                         self.selected = (self.selected + 1) % len(settings.MENU_OPTIONS)
                     elif event.key in (pygame.K_UP, pygame.K_w):
@@ -65,6 +73,20 @@ class Menu:
         for i, line in enumerate(settings.CONTROLS_TEXT):
             hud.draw_text(self.window, line, 18, settings.COLOR_WHITE,
                           center=(cx, box_y + 34 + i * 24))
+
+        # credito discreto do desenvolvedor
+        hud.draw_text(self.window, "developed by CelioSantiago  -  RU 5233696",
+                      13, (150, 150, 162), center=(cx, settings.WIN_HEIGHT - 9))
+
+        # mensagem do easter egg (Modo Cangaco)
+        if self._flash > 0 or CHEATS.cangaco:
+            if self._flash > 0:
+                hud.draw_text(self.window, "* MODO CANGACO ATIVADO! *", 24,
+                              settings.COLOR_YELLOW, center=(cx, 180), bold=True)
+                self._flash -= 1
+            else:
+                hud.draw_text(self.window, "Modo Cangaco ativo", 14,
+                              settings.COLOR_ORANGE, center=(cx, 165))
         pygame.display.flip()
 
     # ------------------------------------------------------------------

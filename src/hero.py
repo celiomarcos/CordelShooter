@@ -17,6 +17,7 @@ class Hero(Entity):
     def __init__(self, position):
         super().__init__(settings.HERO, position)
         self.cooldown = 0
+        self.cangaco = False  # Modo Cangaco (easter egg): tiro triplo
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -38,10 +39,15 @@ class Hero(Entity):
             self.cooldown -= 1
 
     def try_shoot(self):
-        """Retorna um HeroBullet se a tecla de tiro estiver pressionada e
-        a cadencia permitir; caso contrario retorna None."""
+        """Retorna a lista de tiros disparados neste frame (vazia se nao
+        atirou). No Modo Cangaco dispara um tiro triplo e mais rapido."""
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE] and self.cooldown == 0:
-            self.cooldown = settings.SHOOT_COOLDOWN[self.name]
-            return HeroBullet((self.rect.centerx, self.rect.top))
-        return None
+        if not (keys[pygame.K_SPACE] and self.cooldown == 0):
+            return []
+        cx, ty = self.rect.centerx, self.rect.top
+        if self.cangaco:
+            self.cooldown = max(4, settings.SHOOT_COOLDOWN[self.name] // 2)
+            return [HeroBullet((cx - 16, ty)), HeroBullet((cx, ty)),
+                    HeroBullet((cx + 16, ty))]
+        self.cooldown = settings.SHOOT_COOLDOWN[self.name]
+        return [HeroBullet((cx, ty))]
