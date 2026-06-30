@@ -8,6 +8,7 @@ memória usando fórmulas matemáticas simples (ondas senoidais, quadradas e ru�
 criando objetos pygame.mixer.Sound sem precisar de arquivos de áudio externos.
 """
 import math
+import os
 import random
 import struct
 import pygame
@@ -16,10 +17,11 @@ SOUNDS = {}
 _bgm_channel = None
 _bgm_sound = None
 _enabled = False
+_use_midi = False
 
 
 def init_sounds():
-    global _enabled, _bgm_sound
+    global _enabled, _bgm_sound, _use_midi
     if _enabled:
         return
     try:
@@ -33,7 +35,15 @@ def init_sounds():
         SOUNDS["life_bonus"] = _make_life_bonus()
         SOUNDS["victory"] = _make_victory()
         SOUNDS["game_over"] = _make_game_over()
-        _bgm_sound = _make_bgm()
+
+        # Verifica se o arquivo midi existe para usá-lo como BGM
+        from src.assets import asset
+        midi_path = asset("praia-de-janga.mid")
+        if os.path.exists(midi_path):
+            _use_midi = True
+            pygame.mixer.music.load(midi_path)
+        else:
+            _bgm_sound = _make_bgm()
 
         _enabled = True
     except Exception as exc:
@@ -49,20 +59,31 @@ def play_sound(name):
 
 def start_bgm():
     global _bgm_channel
-    if not _enabled or _bgm_sound is None:
+    if not _enabled:
         return
-    # Toca a música em loop no canal dedicado a ela
-    if _bgm_channel is None or not _bgm_channel.get_busy():
-        _bgm_channel = _bgm_sound.play(loops=-1)
-        if _bgm_channel:
-            _bgm_channel.set_volume(0.4)
+    if _use_midi:
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play(loops=-1)
+            pygame.mixer.music.set_volume(0.4)
+    else:
+        if _bgm_sound is None:
+            return
+        if _bgm_channel is None or not _bgm_channel.get_busy():
+            _bgm_channel = _bgm_sound.play(loops=-1)
+            if _bgm_channel:
+                _bgm_channel.set_volume(0.4)
 
 
 def stop_bgm():
     global _bgm_channel
-    if not _enabled or _bgm_channel is None:
+    if not _enabled:
         return
-    _bgm_channel.stop()
+    if _use_midi:
+        pygame.mixer.music.stop()
+    else:
+        if _bgm_channel is not None:
+            _bgm_channel.stop()
+
 
 
 def play_victory():
