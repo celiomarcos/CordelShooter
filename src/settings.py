@@ -49,7 +49,11 @@ MONSTER_BULLET = "monster_bullet"
 BOSS_BULLET = "boss_bullet"
 BOSS = "cuca"
 MONSTERS = ("saci", "mula", "boitata")
-BACKGROUNDS = ("bg_sky", "bg_caatinga")
+ET = "et"
+LIFE = "life"
+
+# velocidade de rolagem da camada de caatinga (parallax)
+CAATINGA_SPEED = 1
 
 # ----------------------------------------------------------------------
 # Atributos das entidades
@@ -63,8 +67,8 @@ SPEED = {
     "cuca": 2,
     "monster_bullet": 5,
     "boss_bullet": 4,
-    "bg_sky": 0,
-    "bg_caatinga": 1,
+    "et": 3,
+    "life": 2,
 }
 
 HEALTH = {
@@ -76,6 +80,8 @@ HEALTH = {
     "cuca": 600,
     "monster_bullet": 1,
     "boss_bullet": 1,
+    "et": 40,
+    "life": 1,
 }
 
 DAMAGE = {
@@ -87,6 +93,8 @@ DAMAGE = {
     "cuca": 30,
     "monster_bullet": 12,
     "boss_bullet": 22,
+    "et": 0,
+    "life": 0,
 }
 
 SCORE_VALUE = {
@@ -136,6 +144,8 @@ HITBOX_SHRINK = {
     "hero_bullet": 0.15,
     "monster_bullet": 0.25,
     "boss_bullet": 0.2,
+    "et": 0.2,
+    "life": 0.15,
 }
 
 # ----------------------------------------------------------------------
@@ -147,3 +157,28 @@ DEFEAT_MESSAGE = "VOCE PERDEU!"
 
 DB_NAME = "ranking.db"
 RANKING_LIMIT = 10
+
+# ----------------------------------------------------------------------
+# Easter egg de socorro: ET de Varginha
+# ----------------------------------------------------------------------
+# Quando a vida do heroi cai abaixo desta fracao, o ET de Varginha
+# cruza a tela. Se for atingido, solta um coracao que cura o heroi.
+ET_LOW_HEALTH_RATIO = 0.30
+ET_RESPAWN_FRAMES = 360       # espera minima entre aparicoes do ET (~6s)
+LIFE_BONUS_HEAL = 50          # vida recuperada ao pegar o coracao
+
+# ----------------------------------------------------------------------
+# Periodo do dia (cenario muda conforme o relogio do computador)
+# ----------------------------------------------------------------------
+PERIODS = ("morning", "afternoon", "night")
+
+
+def current_period():
+    """Retorna 'morning', 'afternoon' ou 'night' pela hora local."""
+    from datetime import datetime
+    hour = datetime.now().hour
+    if 5 <= hour < 12:
+        return "morning"
+    if 12 <= hour < 18:
+        return "afternoon"
+    return "night"

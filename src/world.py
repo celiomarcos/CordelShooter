@@ -18,10 +18,12 @@ import pygame
 from src import hud, settings
 from src.arbiter import Arbiter
 from src.boss import Boss
+from src.bullet import HeroBullet
 from src.cheats import CHEATS
 from src.hero import Hero
 from src.monster import Monster
 from src.spawner import Spawner
+from src.specials import ET, LifeBonus
 
 
 class World:
@@ -38,6 +40,10 @@ class World:
         self.time_left = settings.WAVE_DURATION_MS
         self.boss = None
         self.boss_phase = False
+        self.et = None              # ET de Varginha ativo (ou None)
+        self._et_cooldown = 0       # espera entre aparicoes do ET
+        self._msg = ""              # mensagem temporaria no HUD
+        self._msg_timer = 0
 
     # ------------------------------------------------------------------
     def run(self):
@@ -107,9 +113,52 @@ class World:
                 for enemy_shot in ent.try_shoot(self.hero):
                     self.entities.append(enemy_shot)
 
+        # ET de Varginha (socorro quando a vida esta baixa)
+        self._update_et()
+
         # colisoes e limpeza
         Arbiter.resolve_collisions(self.entities, self.hero)
+        self._handle_specials()
         self.score += Arbiter.collect_dead(self.entities, self.hero)
+
+    # ------------------------------------------------------------------
+    def _update_et(self):
+        """Faz o ET aparecer quando o heroi esta com pouca vida."""
+        if self._et_cooldown > 0:
+            self._et_cooldown -= 1
+        low = self.hero.health < self.hero.max_health * settings.ET_LOW_HEALTH_RATIO
+        if self.et is None and self._et_cooldown == 0 and low and self.hero.is_alive:
+            self.et = Spawner.et()
+            self.entities.append(self.et)
+            self._et_cooldown = settings.ET_RESPAWN_FRAMES
+            self._set_msg("apareceu o ET de Varginha! Acerte-o para ganhar vida!", 120)
+
+    def _handle_specials(self):
+        """Resolve tiros no ET (solta coracao) e a coleta do coracao."""
+        # ET atingido pelos tiros do heroi
+        if self.et is not None and self.et.is_alive:
+            for bullet in self.entities:
+                if isinstance(bullet, HeroBullet) and bullet.is_alive \
+                        and self.et.collides_with(bullet):
+                    self.et.health -= bullet.damage
+                    bullet.health = 0
+            if not self.et.is_alive:  # derrubado: solta o coracao
+                self.entities.append(LifeBonus(self.et.rect.center))
+                self._set_msg("Bonus de vida liberado!", 120)
+        if self.et is not None and not self.et.is_alive:
+            self.et = None
+
+        # coleta do coracao pelo heroi
+        for ent in self.entities:
+            if isinstance(ent, LifeBonus) and ent.is_alive and self.hero.collides_with(ent):
+                self.hero.health = min(self.hero.max_health,
+                                       self.hero.health + settings.LIFE_BONUS_HEAL)
+                ent.health = 0
+                self._set_msg(f"+{settings.LIFE_BONUS_HEAL} DE VIDA!", 90)
+
+    def _set_msg(self, text, frames):
+        self._msg = text
+        self._msg_timer = frames
 
     # ------------------------------------------------------------------
     def _draw(self, clock):
@@ -141,6 +190,13 @@ class World:
         else:
             hud.draw_text(self.window, f"Horda: {self.time_left / 1000:.1f}s", 20,
                           settings.COLOR_WHITE, center=(settings.WIN_WIDTH // 2, 18))
+
+        # mensagem temporaria (ET / bonus de vida)
+        if self._msg_timer > 0:
+            hud.draw_text(self.window, self._msg, 20, settings.COLOR_GREEN,
+                          center=(settings.WIN_WIDTH // 2, settings.WIN_HEIGHT - 40),
+                          bold=True)
+            self._msg_timer -= 1
 
     @staticmethod
     def _stop_timers():

@@ -19,12 +19,28 @@ from src.scenery import Scenery
 class Spawner:
     @staticmethod
     def background():
-        """Retorna as camadas de cenario (duas copias de cada para rolagem)."""
-        layers = []
-        for name in settings.BACKGROUNDS:
-            layers.append(Scenery(name, 0))
-            layers.append(Scenery(name, -settings.WIN_HEIGHT))
-        return layers
+        """Monta o cenario do periodo atual (manha/tarde/noite, pelo relogio).
+        Ceu parado ao fundo + caatinga rolando em duas copias (parallax)."""
+        period = settings.current_period()
+        sky = f"bg_sky_{period}"
+        caatinga = f"bg_caatinga_{period}"
+        h = settings.WIN_HEIGHT
+        return [
+            Scenery(sky, 0, 0),
+            Scenery(caatinga, settings.CAATINGA_SPEED, 0),
+            Scenery(caatinga, settings.CAATINGA_SPEED, -h),
+        ]
+
+    @staticmethod
+    def et():
+        """Cria o ET de Varginha entrando por um dos lados da tela."""
+        import random as _r
+        h = settings.WIN_HEIGHT
+        side = _r.choice((-1, 1))
+        x = -30 if side == 1 else settings.WIN_WIDTH + 30
+        y = _r.randint(60, int(h * 0.4))
+        from src.specials import ET
+        return ET((x, y), settings.SPEED[settings.ET] * side)
 
     @staticmethod
     def hero():

@@ -27,8 +27,10 @@ ASSET_DIR = os.path.join(base_path(), "asset")
 
 REQUIRED = (
     "hero.png", "hero_bullet.png", "saci.png", "mula.png", "boitata.png",
-    "cuca.png", "monster_bullet.png", "boss_bullet.png",
-    "bg_sky.png", "bg_caatinga.png", "menu_bg.png", "ranking_bg.png",
+    "cuca.png", "monster_bullet.png", "boss_bullet.png", "et.png", "life.png",
+    "bg_sky_morning.png", "bg_sky_afternoon.png", "bg_sky_night.png",
+    "bg_caatinga_morning.png", "bg_caatinga_afternoon.png", "bg_caatinga_night.png",
+    "menu_bg.png", "ranking_bg.png",
 )
 
 

@@ -75,7 +75,8 @@ class Menu:
                           center=(cx, box_y + 34 + i * 24))
 
         # credito discreto do desenvolvedor (acima da moldura de cordel)
-        hud.draw_text(self.window, "developed by CelioSantiago  -  RU 5233696",
+        hud.draw_text(self.window, "developed by celiomarcos@gmail.com  - Uninter RU 5233696",
+                      
                       13, (170, 170, 182), center=(cx, settings.WIN_HEIGHT - 24))
 
         # mensagem do easter egg (Modo Cangaco)

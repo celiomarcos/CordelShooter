@@ -6,6 +6,10 @@ Ponto de entrada do Cordel Shooter - Lendas do Sertao.
 Execute com:  python main.py
 """
 import os
+
+# Set environment variable to hide the greeting
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
 import sys
 
 # garante que a raiz do projeto esteja no caminho de importacao
