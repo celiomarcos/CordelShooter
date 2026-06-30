@@ -27,3 +27,8 @@ class Scenery(Entity):
         if self.rect.top >= settings.WIN_HEIGHT:
             self.rect.bottom = 0
 
+    def change_image(self, name):
+        from src.assets import load_image
+        self.surf = load_image(f"{name}.png")
+
+

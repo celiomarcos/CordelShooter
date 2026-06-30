@@ -277,7 +277,7 @@ def draw_sky(w, h, period="night"):
 _CAATINGA_COLORS = {
     "morning": {"ridge": (70, 84, 58), "base": (52, 64, 44), "cact": (46, 58, 40), "bush": (58, 70, 48)},
     "afternoon": {"ridge": (76, 92, 62), "base": (56, 70, 48), "cact": (50, 64, 44), "bush": (62, 76, 52)},
-    "night": {"ridge": (20, 16, 30), "base": (14, 11, 22), "cact": (12, 10, 18), "bush": (16, 13, 24)},
+    "night": {"ridge": (30, 24, 45), "base": (20, 16, 30), "cact": (16, 13, 25), "bush": (24, 20, 36)},
 }
 
 

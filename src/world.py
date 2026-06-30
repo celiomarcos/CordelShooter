@@ -84,8 +84,15 @@ class World:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                return "quit"
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return "quit"
+                elif event.key == pygame.K_1:
+                    self._change_period("morning")
+                elif event.key == pygame.K_2:
+                    self._change_period("afternoon")
+                elif event.key == pygame.K_3:
+                    self._change_period("night")
             if event.type == settings.EVENT_SPAWN and not self.boss_phase:
                 self.entities.append(Spawner.random_monster())
             if event.type == settings.EVENT_CLOCK and not self.boss_phase:
@@ -171,6 +178,17 @@ class World:
     def _set_msg(self, text, frames):
         self._msg = text
         self._msg_timer = frames
+
+    def _change_period(self, period):
+        # Altera imagens dos fundos e chao
+        self.background[0].change_image(f"bg_sky_{period}")
+        self.background[1].change_image(f"bg_caatinga_{period}")
+        self.background[2].change_image(f"bg_caatinga_{period}")
+        # Altera nuvens
+        self.cloud_system.setup(period)
+        # Feedback na tela
+        pt_names = {"morning": "MANHÃ", "afternoon": "TARDE", "night": "NOITE"}
+        self._set_msg(f"PERÍODO: {pt_names.get(period, period.upper())}", 90)
 
     def _draw(self, clock):
         # 1. Desenha o céu estático de fundo (layer 0)
