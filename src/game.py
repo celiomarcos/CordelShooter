@@ -10,7 +10,7 @@ import sys
 
 import pygame
 
-from src import hud, settings
+from src import hud, settings, sounds
 from src.assets import ensure_assets
 from src.menu import Menu
 from src.ranking import ScoreDB
@@ -22,9 +22,11 @@ class Game:
         pygame.init()
         # garante que todos os assets existam antes de carregar imagens
         ensure_assets(settings.WIN_WIDTH, settings.WIN_HEIGHT)
+        sounds.init_sounds()
         self.window = pygame.display.set_mode((settings.WIN_WIDTH, settings.WIN_HEIGHT))
         pygame.display.set_caption(settings.GAME_TITLE)
         self.menu = Menu(self.window)
+
 
     def run(self):
         while True:
@@ -42,8 +44,10 @@ class Game:
         world = World(self.window)
         result, score = world.run()
         if result == "quit":
+            sounds.stop_bgm()
             return
         if result == "win":
+            sounds.play_victory()
             self._end_screen(settings.VICTORY_MESSAGE, settings.COLOR_YELLOW, score)
             name = self._ask_name()
             if name:
@@ -51,7 +55,9 @@ class Game:
                     db.save(name, score)
 
         else:  # lose
+            sounds.play_game_over()
             self._end_screen(settings.DEFEAT_MESSAGE, settings.COLOR_RED, score)
+
 
     def _end_screen(self, message, color, score):
         clock = pygame.time.Clock()

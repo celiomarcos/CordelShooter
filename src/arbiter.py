@@ -10,7 +10,7 @@ que cada classe conheca as outras. Trata:
   - contato direto monstro x heroi;
   - pontuacao concedida ao heroi quando um inimigo morre.
 """
-from src import settings
+from src import settings, sounds
 from src.boss import Boss
 from src.bullet import HeroBullet, MonsterBullet
 from src.hero import Hero
@@ -41,12 +41,14 @@ class Arbiter:
         for bullet in enemy_bullets:
             if hero.is_alive and not hero.is_invincible and hero.collides_with(bullet):
                 Arbiter._hit(hero, bullet)
+                sounds.play_sound("hit")
                 hero.invincible_timer = settings.INVINCIBILITY_FRAMES
 
         # contato direto monstro x heroi
         for enemy in enemies:
             if hero.is_alive and not hero.is_invincible and hero.collides_with(enemy):
                 Arbiter._hit(hero, enemy)
+                sounds.play_sound("hit")
                 hero.invincible_timer = settings.INVINCIBILITY_FRAMES
 
 
@@ -59,7 +61,10 @@ class Arbiter:
             if ent.is_alive or ent is hero:
                 survivors.append(ent)
             else:
-                if isinstance(ent, (Monster, Boss)) and ent.last_hit_by == hero.name + "_bullet":
-                    gained += ent.score
+                if isinstance(ent, (Monster, Boss)):
+                    sounds.play_sound("explosion")
+                    if ent.last_hit_by == hero.name + "_bullet":
+                        gained += ent.score
         entities[:] = survivors
         return gained
+

@@ -15,7 +15,7 @@ import sys
 
 import pygame
 
-from src import hud, settings
+from src import hud, settings, sounds
 from src.arbiter import Arbiter
 from src.boss import Boss
 from src.bullet import HeroBullet
@@ -47,7 +47,9 @@ class World:
 
     # ------------------------------------------------------------------
     def run(self):
+        sounds.start_bgm()
         clock = pygame.time.Clock()
+
         pygame.time.set_timer(settings.EVENT_SPAWN, settings.SPAWN_INTERVAL_MS)
         pygame.time.set_timer(settings.EVENT_CLOCK, settings.CLOCK_STEP_MS)
 
@@ -154,7 +156,9 @@ class World:
                 self.hero.health = min(self.hero.max_health,
                                        self.hero.health + settings.LIFE_BONUS_HEAL)
                 ent.health = 0
+                sounds.play_sound("life_bonus")
                 self._set_msg(f"+{settings.LIFE_BONUS_HEAL} DE VIDA!", 90)
+
 
     def _set_msg(self, text, frames):
         self._msg = text

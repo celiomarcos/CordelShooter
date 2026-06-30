@@ -8,12 +8,13 @@ atira para cima com a barra de espaco, respeitando uma cadencia minima.
 """
 import pygame
 
-from src import settings
+from src import settings, sounds
 from src.bullet import HeroBullet
 from src.entity import Entity
 
 
 class Hero(Entity):
+
     def __init__(self, position):
         super().__init__(settings.HERO, position)
         self.cooldown = 0
@@ -53,6 +54,7 @@ class Hero(Entity):
         keys = pygame.key.get_pressed()
         if not (keys[pygame.K_SPACE] and self.cooldown == 0):
             return []
+        sounds.play_sound("shoot")
         cx, ty = self.rect.centerx, self.rect.top
         if self.cangaco:
             self.cooldown = max(4, settings.SHOOT_COOLDOWN[self.name] // 2)
@@ -60,3 +62,4 @@ class Hero(Entity):
                     HeroBullet((cx + 16, ty))]
         self.cooldown = settings.SHOOT_COOLDOWN[self.name]
         return [HeroBullet((cx, ty))]
+
