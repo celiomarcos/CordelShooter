@@ -199,11 +199,11 @@ def _vgradient(w, h, stops):
 
 
 def _hills(s, w, h, far_col, near_col):
-    base = int(h * 0.80)
-    far = [(x, base + int(math.sin(x / 120.0) * 14)) for x in range(0, w + 40, 40)]
-    pygame.draw.polygon(s, far_col, [(0, h)] + far + [(w, h)])
-    near = [(x, base + 38 + int(math.sin(x / 90.0 + 1.5) * 18)) for x in range(0, w + 40, 40)]
-    pygame.draw.polygon(s, near_col, [(0, h)] + near + [(w, h)])
+    base = 300
+    far = [(x, base - 15 + int(math.sin(x / 120.0) * 8)) for x in range(0, w + 40, 40)]
+    pygame.draw.polygon(s, far_col, [(0, base)] + far + [(w, base)])
+    near = [(x, base - 6 + int(math.sin(x / 90.0 + 1.5) * 6)) for x in range(0, w + 40, 40)]
+    pygame.draw.polygon(s, near_col, [(0, base)] + near + [(w, base)])
 
 
 def _sun(s, cx, cy, color):
@@ -230,7 +230,6 @@ def draw_sky(w, h, period="night"):
             (0.00, (126, 176, 224)), (0.50, (196, 214, 228)),
             (0.78, (255, 214, 150)), (1.00, (150, 150, 120)),
         ])
-        _clouds(s, w, h, (255, 255, 255, 90), 5, seed=5)
         _sun(s, int(w * 0.76), int(h * 0.34), (255, 236, 170))
         _hills(s, w, h, (96, 120, 86), (70, 96, 64))
         return s
@@ -239,7 +238,6 @@ def draw_sky(w, h, period="night"):
             (0.00, (74, 140, 214)), (0.50, (150, 194, 234)),
             (0.82, (232, 226, 196)), (1.00, (150, 150, 120)),
         ])
-        _clouds(s, w, h, (255, 255, 255, 110), 6, seed=8)
         _sun(s, int(w * 0.30), int(h * 0.16), (255, 250, 224))
         _hills(s, w, h, (84, 112, 82), (58, 86, 60))
         return s
@@ -272,8 +270,19 @@ def draw_sky(w, h, period="night"):
     pygame.draw.circle(s, (248, 242, 205), (mx, my), 24)
     for cx, cy, cr in ((mx - 8, my - 6, 4), (mx + 6, my + 5, 6), (mx + 2, my - 10, 3)):
         pygame.draw.circle(s, (228, 220, 178), (cx, cy), cr)
-    _clouds(s, w, h, (60, 40, 70, 70), 5, ylo=0.55, yhi=0.72, seed=7)
     _hills(s, w, h, (40, 30, 58), (26, 20, 40))
+    return s
+
+
+def draw_clouds(w, h, period="night"):
+    """Nuvens roláveis (em parallax) conforme o período do dia."""
+    s = _new(w, h)
+    if period == "morning":
+        _clouds(s, w, h, (255, 255, 255, 90), 4, ylo=0.05, yhi=0.95, seed=12)
+    elif period == "afternoon":
+        _clouds(s, w, h, (255, 255, 255, 110), 4, ylo=0.05, yhi=0.95, seed=15)
+    else:  # night
+        _clouds(s, w, h, (60, 40, 70, 70), 3, ylo=0.05, yhi=0.95, seed=7)
     return s
 
 
@@ -285,35 +294,39 @@ _CAATINGA_COLORS = {
 
 
 def draw_caatinga(w, h, period="night"):
-    """Primeiro plano que rola: chao da caatinga tonalizado por periodo.
-    Transparente acima do rodape para fazer parallax sobre o ceu."""
+    """Solo da caatinga sólido (sem transparência) com cactos e arbustos
+    distribuídos por toda a altura (seamless para rolagem infinita)."""
     col = _CAATINGA_COLORS.get(period, _CAATINGA_COLORS["night"])
     s = _new(w, h)
-    base = h - 70
-    ridge = [(x, base + int(math.sin(x / 70.0) * 10)) for x in range(0, w + 35, 35)]
-    pygame.draw.polygon(s, col["ridge"], [(0, h)] + ridge + [(w, h)])
-    pygame.draw.rect(s, col["base"], (0, h - 26, w, 26))  # rodape solido
+    # Preenche o fundo completamente com a cor do chão
+    s.fill(col["base"])
 
     rng = random.Random(13)
     cact = col["cact"]
-    for cx in range(40, w, 120):
-        cx += rng.randint(-15, 15)
-        ht = rng.randint(34, 60)
-        top = base - ht
-        pygame.draw.rect(s, cact, (cx, top, 9, ht))
-        if rng.random() < 0.8:
-            ay = top + rng.randint(8, 18)
-            pygame.draw.rect(s, cact, (cx - 11, ay, 9, 16))
-            pygame.draw.rect(s, cact, (cx - 11, ay - 6, 5, 8))
-        if rng.random() < 0.8:
-            by = top + rng.randint(8, 18)
-            pygame.draw.rect(s, cact, (cx + 9, by, 9, 16))
-            pygame.draw.rect(s, cact, (cx + 13, by - 6, 5, 8))
-    for _ in range(10):  # arbustos secos
-        pygame.draw.circle(s, col["bush"],
-                           (rng.randint(0, w), base + rng.randint(-2, 8)),
-                           rng.randint(5, 11))
+    # Espalha cactos de forma contínua
+    for cy in range(30, h, 80):
+        for _ in range(2):
+            cx = rng.randint(40, w - 40)
+            ht = rng.randint(34, 55)
+            top = cy - ht
+            pygame.draw.rect(s, cact, (cx, top, 8, ht))
+            if rng.random() < 0.7:
+                ay = top + rng.randint(8, 18)
+                pygame.draw.rect(s, cact, (cx - 10, ay, 8, 14))
+                pygame.draw.rect(s, cact, (cx - 10, ay - 4, 4, 6))
+            if rng.random() < 0.7:
+                by = top + rng.randint(8, 18)
+                pygame.draw.rect(s, cact, (cx + 8, by, 8, 14))
+                pygame.draw.rect(s, cact, (cx + 12, by - 4, 4, 6))
+
+    # Espalha arbustos secos por todo o solo
+    for _ in range(16):
+        cx = rng.randint(10, w - 10)
+        cy = rng.randint(10, h - 10)
+        pygame.draw.circle(s, col["bush"], (cx, cy), rng.randint(5, 10))
+
     return s
+
 
 
 def draw_et():
@@ -396,12 +409,15 @@ def generate_all(asset_dir, win_width=800, win_height=600, only_missing=False):
         "menu_bg.png": lambda: draw_menu_bg(win_width, win_height),
         "ranking_bg.png": lambda: draw_ranking_bg(win_width, win_height),
     }
-    # ceu e caatinga por periodo do dia (manha / tarde / noite)
+    # ceu, caatinga e nuvens por periodo do dia (manha / tarde / noite)
     for period in ("morning", "afternoon", "night"):
         builders[f"bg_sky_{period}.png"] = \
             (lambda p: lambda: draw_sky(win_width, win_height, p))(period)
         builders[f"bg_caatinga_{period}.png"] = \
             (lambda p: lambda: draw_caatinga(win_width, win_height, p))(period)
+        builders[f"bg_clouds_{period}.png"] = \
+            (lambda p: lambda: draw_clouds(win_width, win_height, p))(period)
+
 
     created = []
     for filename, builder in builders.items():
