@@ -47,9 +47,9 @@ class Game:
             self._end_screen(settings.VICTORY_MESSAGE, settings.COLOR_YELLOW, score)
             name = self._ask_name()
             if name:
-                db = ScoreDB()
-                db.save(name, score)
-                db.close()
+                with ScoreDB() as db:
+                    db.save(name, score)
+
         else:  # lose
             self._end_screen(settings.DEFEAT_MESSAGE, settings.COLOR_RED, score)
 

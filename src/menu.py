@@ -92,10 +92,10 @@ class Menu:
 
     # ------------------------------------------------------------------
     def show_ranking(self):
-        db = ScoreDB()
-        rows = db.top()
-        db.close()
+        with ScoreDB() as db:
+            rows = db.top()
         clock = pygame.time.Clock()
+
         while True:
             clock.tick(settings.FPS)
             self.window.blit(self.ranking_bg, (0, 0))
