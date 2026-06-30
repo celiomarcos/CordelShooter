@@ -17,6 +17,8 @@ WIN_WIDTH = 800
 WIN_HEIGHT = 600
 GAME_TITLE = "Cordel Shooter - Lendas do Sertao"
 FPS = 60
+HORIZON_Y = 300
+
 
 # ----------------------------------------------------------------------
 # Cores
