@@ -160,14 +160,18 @@ class World:
         self._msg = text
         self._msg_timer = frames
 
-    # ------------------------------------------------------------------
     def _draw(self, clock):
         for layer in self.background:
             self.window.blit(layer.surf, layer.rect)
         for ent in self.entities:
-            self.window.blit(ent.surf, ent.rect)
+            if ent is self.hero and self.hero.is_invincible:
+                if (self.hero.invincible_timer // 6) % 2 == 0:
+                    self.window.blit(ent.surf, ent.rect)
+            else:
+                self.window.blit(ent.surf, ent.rect)
         self._draw_hud(clock)
         pygame.display.flip()
+
 
     def _draw_hud(self, clock):
         # vida do heroi

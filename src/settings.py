@@ -166,6 +166,8 @@ RANKING_LIMIT = 10
 ET_LOW_HEALTH_RATIO = 0.30
 ET_RESPAWN_FRAMES = 360       # espera minima entre aparicoes do ET (~6s)
 LIFE_BONUS_HEAL = 50          # vida recuperada ao pegar o coracao
+INVINCIBILITY_FRAMES = 60     # frames de invencibilidade temporaria do heroi ao receber dano
+
 
 # ----------------------------------------------------------------------
 # Periodo do dia (cenario muda conforme o relogio do computador)

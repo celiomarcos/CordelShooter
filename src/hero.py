@@ -18,6 +18,11 @@ class Hero(Entity):
         super().__init__(settings.HERO, position)
         self.cooldown = 0
         self.cangaco = False  # Modo Cangaco (easter egg): tiro triplo
+        self.invincible_timer = 0
+
+    @property
+    def is_invincible(self):
+        return self.invincible_timer > 0
 
     def update(self):
         keys = pygame.key.get_pressed()
@@ -37,6 +42,10 @@ class Hero(Entity):
 
         if self.cooldown > 0:
             self.cooldown -= 1
+
+        if self.invincible_timer > 0:
+            self.invincible_timer -= 1
+
 
     def try_shoot(self):
         """Retorna a lista de tiros disparados neste frame (vazia se nao
