@@ -21,16 +21,20 @@ class Spawner:
     @staticmethod
     def background():
         """Monta o cenario do periodo atual (manha/tarde/noite, pelo relogio).
-        Ceu parado ao fundo + caatinga rolando em duas copias (parallax)."""
+        Ceu parado + nuvens rolando (parallax) + chao da caatinga rolando."""
         period = settings.current_period()
         sky = f"bg_sky_{period}"
+        clouds = f"bg_clouds_{period}"
         caatinga = f"bg_caatinga_{period}"
         h = settings.WIN_HEIGHT
         return [
             Scenery(sky, 0, 0),
+            Scenery(clouds, 0.4, 0),
+            Scenery(clouds, 0.4, -h),
             Scenery(caatinga, settings.CAATINGA_SPEED, 0),
             Scenery(caatinga, settings.CAATINGA_SPEED, -h),
         ]
+
 
     @staticmethod
     def et():
