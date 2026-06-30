@@ -274,18 +274,6 @@ def draw_sky(w, h, period="night"):
     return s
 
 
-def draw_clouds(w, h, period="night"):
-    """Nuvens roláveis (em parallax) conforme o período do dia."""
-    s = _new(w, h)
-    if period == "morning":
-        _clouds(s, w, h, (255, 255, 255, 90), 4, ylo=0.05, yhi=0.95, seed=12)
-    elif period == "afternoon":
-        _clouds(s, w, h, (255, 255, 255, 110), 4, ylo=0.05, yhi=0.95, seed=15)
-    else:  # night
-        _clouds(s, w, h, (60, 40, 70, 70), 3, ylo=0.05, yhi=0.95, seed=7)
-    return s
-
-
 _CAATINGA_COLORS = {
     "morning": {"ridge": (70, 84, 58), "base": (52, 64, 44), "cact": (46, 58, 40), "bush": (58, 70, 48)},
     "afternoon": {"ridge": (76, 92, 62), "base": (56, 70, 48), "cact": (50, 64, 44), "bush": (62, 76, 52)},
@@ -409,14 +397,13 @@ def generate_all(asset_dir, win_width=800, win_height=600, only_missing=False):
         "menu_bg.png": lambda: draw_menu_bg(win_width, win_height),
         "ranking_bg.png": lambda: draw_ranking_bg(win_width, win_height),
     }
-    # ceu, caatinga e nuvens por periodo do dia (manha / tarde / noite)
+    # ceu e caatinga por periodo do dia (manha / tarde / noite)
     for period in ("morning", "afternoon", "night"):
         builders[f"bg_sky_{period}.png"] = \
             (lambda p: lambda: draw_sky(win_width, win_height, p))(period)
         builders[f"bg_caatinga_{period}.png"] = \
             (lambda p: lambda: draw_caatinga(win_width, win_height, p))(period)
-        builders[f"bg_clouds_{period}.png"] = \
-            (lambda p: lambda: draw_clouds(win_width, win_height, p))(period)
+
 
 
     created = []

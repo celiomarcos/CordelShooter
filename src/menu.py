@@ -15,16 +15,22 @@ from src.assets import load_image
 from src.cheats import CHEATS
 from src.konami import KonamiCode
 from src.ranking import ScoreDB
+from src.clouds import CloudSystem
+
 
 
 class Menu:
     def __init__(self, window):
         self.window = window
-        self.bg = load_image("menu_bg.png")
+        self.sky = load_image("bg_sky_night.png")
+        self.caatinga = load_image("bg_caatinga_night.png")
         self.ranking_bg = load_image("ranking_bg.png")
         self.selected = 0
         self.konami = KonamiCode()
         self._flash = 0  # frames restantes da mensagem do easter egg
+        self.cloud_system = CloudSystem()
+        self.cloud_system.setup("night")
+
 
     # ------------------------------------------------------------------
     def run(self):
@@ -32,6 +38,7 @@ class Menu:
         clock = pygame.time.Clock()
         while True:
             clock.tick(settings.FPS)
+            self.cloud_system.update(1.0)
             self._draw()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -52,7 +59,31 @@ class Menu:
                         return settings.MENU_EXIT
 
     def _draw(self):
-        self.window.blit(self.bg, (0, 0))
+        # 1. Desenha o céu de noite (fundo estático)
+        self.window.blit(self.sky, (0, 0))
+
+        # 2. Desenha nuvens procedurais dinâmicas (apenas acima do horizonte)
+        self.window.set_clip(pygame.Rect(0, 0, settings.WIN_WIDTH, settings.HORIZON_Y))
+        self.cloud_system.draw(self.window)
+
+        # 3. Desenha o chão da caatinga (apenas abaixo do horizonte)
+        self.window.set_clip(pygame.Rect(0, settings.HORIZON_Y, settings.WIN_WIDTH, settings.WIN_HEIGHT - settings.HORIZON_Y))
+        self.window.blit(self.caatinga, (0, 0))
+
+        # Reseta a área de clip
+        self.window.set_clip(None)
+
+        # 4. Desenha as molduras de cordel
+        w = settings.WIN_WIDTH
+        h = settings.WIN_HEIGHT
+        pygame.draw.rect(self.window, (20, 16, 40), (0, 0, w, 8))
+        pygame.draw.rect(self.window, (20, 16, 40), (0, h - 8, w, 8))
+        pygame.draw.rect(self.window, settings.COLOR_YELLOW, (0, 8, w, 2))
+        pygame.draw.rect(self.window, settings.COLOR_YELLOW, (0, h - 10, w, 2))
+        for x in range(0, w, 28):
+            pygame.draw.circle(self.window, settings.COLOR_YELLOW, (x, 4), 2)
+            pygame.draw.circle(self.window, settings.COLOR_YELLOW, (x, h - 4), 2)
+
         cx = settings.WIN_WIDTH // 2
         hud.draw_text(self.window, "CORDEL SHOOTER", 56, settings.COLOR_YELLOW,
                       center=(cx, 90), bold=True)

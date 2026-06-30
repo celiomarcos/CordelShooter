@@ -24,12 +24,16 @@ from src.hero import Hero
 from src.monster import Monster
 from src.spawner import Spawner
 from src.specials import ET, LifeBonus
+from src.clouds import CloudSystem
+
 
 
 class World:
     def __init__(self, window):
         self.window = window
         self.background = Spawner.background()
+        self.cloud_system = CloudSystem()
+        self.cloud_system.setup(settings.current_period())
         self.hero = Spawner.hero()
         if CHEATS.cangaco:  # easter egg: Modo Cangaco
             self.hero.cangaco = True
@@ -101,6 +105,8 @@ class World:
         # cenario
         for layer in self.background:
             layer.update(dt_scale)
+        # nuvens procedurais
+        self.cloud_system.update(dt_scale)
 
         # heroi e seu(s) tiro(s)
         self.hero.update(dt_scale)
@@ -170,15 +176,14 @@ class World:
         # 1. Desenha o céu estático de fundo (layer 0)
         self.window.blit(self.background[0].surf, self.background[0].rect)
 
-        # 2. Desenha as nuvens em movimento (layers 1 e 2) apenas no céu (acima do horizonte)
+        # 2. Desenha as nuvens procedurais dinâmicas apenas no céu (acima do horizonte)
         self.window.set_clip(pygame.Rect(0, 0, settings.WIN_WIDTH, settings.HORIZON_Y))
+        self.cloud_system.draw(self.window)
+
+        # 3. Desenha o chão da caatinga (layers 1 e 2) apenas no solo (abaixo do horizonte)
+        self.window.set_clip(pygame.Rect(0, settings.HORIZON_Y, settings.WIN_WIDTH, settings.WIN_HEIGHT - settings.HORIZON_Y))
         self.window.blit(self.background[1].surf, self.background[1].rect)
         self.window.blit(self.background[2].surf, self.background[2].rect)
-
-        # 3. Desenha o chão da caatinga (layers 3 e 4) apenas no solo (abaixo do horizonte)
-        self.window.set_clip(pygame.Rect(0, settings.HORIZON_Y, settings.WIN_WIDTH, settings.WIN_HEIGHT - settings.HORIZON_Y))
-        self.window.blit(self.background[3].surf, self.background[3].rect)
-        self.window.blit(self.background[4].surf, self.background[4].rect)
 
         # Reseta a área de clip para renderizar os personagens, tiros e HUD normalmente
         self.window.set_clip(None)
