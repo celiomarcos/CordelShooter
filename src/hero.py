@@ -25,7 +25,7 @@ class Hero(Entity):
     def is_invincible(self):
         return self.invincible_timer > 0
 
-    def update(self):
+    def update(self, dt_scale=1.0):
         keys = pygame.key.get_pressed()
         up = keys[pygame.K_UP] or keys[pygame.K_w]
         down = keys[pygame.K_DOWN] or keys[pygame.K_s]
@@ -33,26 +33,25 @@ class Hero(Entity):
         right = keys[pygame.K_RIGHT] or keys[pygame.K_d]
 
         if up and self.rect.top > 0:
-            self.rect.y -= self.speed
+            self.rect.y -= round(self.speed * dt_scale)
         if down and self.rect.bottom < settings.WIN_HEIGHT:
-            self.rect.y += self.speed
+            self.rect.y += round(self.speed * dt_scale)
         if left and self.rect.left > 0:
-            self.rect.x -= self.speed
+            self.rect.x -= round(self.speed * dt_scale)
         if right and self.rect.right < settings.WIN_WIDTH:
-            self.rect.x += self.speed
+            self.rect.x += round(self.speed * dt_scale)
 
         if self.cooldown > 0:
-            self.cooldown -= 1
+            self.cooldown = max(0.0, self.cooldown - dt_scale)
 
         if self.invincible_timer > 0:
-            self.invincible_timer -= 1
-
+            self.invincible_timer = max(0.0, self.invincible_timer - dt_scale)
 
     def try_shoot(self):
         """Retorna a lista de tiros disparados neste frame (vazia se nao
         atirou). No Modo Cangaco dispara um tiro triplo e mais rapido."""
         keys = pygame.key.get_pressed()
-        if not (keys[pygame.K_SPACE] and self.cooldown == 0):
+        if not (keys[pygame.K_SPACE] and self.cooldown <= 0):
             return []
         sounds.play_sound("shoot")
         cx, ty = self.rect.centerx, self.rect.top
@@ -62,4 +61,5 @@ class Hero(Entity):
                     HeroBullet((cx + 16, ty))]
         self.cooldown = settings.SHOOT_COOLDOWN[self.name]
         return [HeroBullet((cx, ty))]
+
 

@@ -29,17 +29,17 @@ class Boss(Entity):
         self._pattern = 0
 
     # ------------------------------------------------------------------
-    def update(self):
+    def update(self, dt_scale=1.0):
         if self._entering:
-            self.rect.y += self.speed
+            self.rect.y += round(self.speed * dt_scale)
             if self.rect.top >= self._target_y:
                 self._entering = False
         else:
-            self.rect.x += self.speed * self._direction
+            self.rect.x += round(self.speed * self._direction * dt_scale)
             if self.rect.right >= settings.WIN_WIDTH or self.rect.left <= 0:
                 self._direction *= -1
         if self.cooldown > 0:
-            self.cooldown -= 1
+            self.cooldown = max(0.0, self.cooldown - dt_scale)
 
     # --- auxiliares de tiro -------------------------------------------
     def _origin(self):
@@ -59,7 +59,7 @@ class Boss(Entity):
 
     # ------------------------------------------------------------------
     def try_shoot(self, target):
-        if self._entering or self.cooldown != 0:
+        if self._entering or self.cooldown > 0:
             return []
         self.cooldown = settings.SHOOT_COOLDOWN[self.name]
         self._pattern = (self._pattern + 1) % 3
@@ -72,3 +72,4 @@ class Boss(Entity):
             BossBullet((self.rect.centerx - 22, self.rect.bottom)),
             BossBullet((self.rect.centerx + 22, self.rect.bottom)),
         ]
+

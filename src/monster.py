@@ -39,19 +39,20 @@ class Monster(Entity):
         self._mv = _MOVE.get(name, {"amp": 10, "freq": 18.0, "vy": 1.0})
 
     # ------------------------------------------------------------------
-    def update(self):
-        self._t += 1
+    def update(self, dt_scale=1.0):
+        self._t += dt_scale
         mv = self._mv
         vy = self.speed * mv["vy"]
         if self.name == "saci":  # desce aos saltos
             vy *= 0.5 + abs(math.sin(self._t / 8.0))
-        self.rect.y += int(round(vy))
+        self.rect.y += int(round(vy * dt_scale))
         offset = math.sin(self._t / mv["freq"] + self._phase) * mv["amp"]
         self.rect.centerx = int(self._start_x + offset)
         if self.rect.top > settings.WIN_HEIGHT:
             self.health = 0
         if self.cooldown > 0:
-            self.cooldown -= 1
+            self.cooldown = max(0.0, self.cooldown - dt_scale)
+
 
     # --- auxiliares de tiro -------------------------------------------
     def _origin(self):

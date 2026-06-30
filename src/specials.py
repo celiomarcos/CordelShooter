@@ -19,11 +19,11 @@ class ET(Entity):
         super().__init__(settings.ET, position)
         self.vx = vx
         self._y0 = position[1]
-        self._t = 0
+        self._t = 0.0
 
-    def update(self):
-        self._t += 1
-        self.rect.x += self.vx
+    def update(self, dt_scale=1.0):
+        self._t += dt_scale
+        self.rect.x += round(self.vx * dt_scale)
         self.rect.centery = int(self._y0 + math.sin(self._t / 16.0) * 10)
         # saiu da tela: desaparece
         if self.rect.right < -10 or self.rect.left > settings.WIN_WIDTH + 10:
@@ -36,11 +36,12 @@ class LifeBonus(Entity):
     def __init__(self, position):
         super().__init__(settings.LIFE, position)
         self._x0 = position[0]
-        self._t = 0
+        self._t = 0.0
 
-    def update(self):
-        self._t += 1
-        self.rect.y += self.speed
+    def update(self, dt_scale=1.0):
+        self._t += dt_scale
+        self.rect.y += round(self.speed * dt_scale)
         self.rect.centerx = int(self._x0 + math.sin(self._t / 12.0) * 14)
         if self.rect.top > settings.WIN_HEIGHT:
             self.health = 0
+

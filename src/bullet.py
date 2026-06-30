@@ -18,8 +18,8 @@ class HeroBullet(Entity):
     def __init__(self, position):
         super().__init__(settings.HERO_BULLET, position)
 
-    def update(self):
-        self.rect.y -= self.speed
+    def update(self, dt_scale=1.0):
+        self.rect.y -= round(self.speed * dt_scale)
         if self.rect.bottom < 0:
             self.health = 0
 
@@ -39,14 +39,15 @@ class MonsterBullet(Entity):
         self._fx = float(self.rect.centerx)
         self._fy = float(self.rect.centery)
 
-    def update(self):
-        self._fx += self.vx
-        self._fy += self.vy
+    def update(self, dt_scale=1.0):
+        self._fx += self.vx * dt_scale
+        self._fy += self.vy * dt_scale
         self.rect.center = (round(self._fx), round(self._fy))
         # morre ao sair por qualquer borda da tela
         if (self.rect.top > settings.WIN_HEIGHT or self.rect.bottom < 0 or
                 self.rect.right < 0 or self.rect.left > settings.WIN_WIDTH):
             self.health = 0
+
 
 
 class BossBullet(MonsterBullet):

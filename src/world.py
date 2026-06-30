@@ -54,14 +54,15 @@ class World:
         pygame.time.set_timer(settings.EVENT_CLOCK, settings.CLOCK_STEP_MS)
 
         while True:
-            clock.tick(settings.FPS)
+            dt = clock.tick(settings.FPS)
+            dt_scale = min(dt / 1000.0, 0.1) * 60.0
 
             result = self._handle_events()
             if result is not None:
                 self._stop_timers()
                 return result, self.score
 
-            self._update()
+            self._update(dt_scale)
             self._draw(clock)
 
             # condicoes de fim de jogo
@@ -96,13 +97,13 @@ class World:
         self.boss = Spawner.boss()
         self.entities.append(self.boss)
 
-    def _update(self):
+    def _update(self, dt_scale=1.0):
         # cenario
         for layer in self.background:
-            layer.update()
+            layer.update(dt_scale)
 
         # heroi e seu(s) tiro(s)
-        self.hero.update()
+        self.hero.update(dt_scale)
         for shot in self.hero.try_shoot():
             self.entities.append(shot)
 
@@ -110,13 +111,13 @@ class World:
         for ent in list(self.entities):
             if ent is self.hero:
                 continue
-            ent.update()
+            ent.update(dt_scale)
             if isinstance(ent, (Monster, Boss)):
                 for enemy_shot in ent.try_shoot(self.hero):
                     self.entities.append(enemy_shot)
 
         # ET de Varginha (socorro quando a vida esta baixa)
-        self._update_et()
+        self._update_et(dt_scale)
 
         # colisoes e limpeza
         Arbiter.resolve_collisions(self.entities, self.hero)
@@ -124,16 +125,17 @@ class World:
         self.score += Arbiter.collect_dead(self.entities, self.hero)
 
     # ------------------------------------------------------------------
-    def _update_et(self):
+    def _update_et(self, dt_scale=1.0):
         """Faz o ET aparecer quando o heroi esta com pouca vida."""
         if self._et_cooldown > 0:
-            self._et_cooldown -= 1
+            self._et_cooldown = max(0.0, self._et_cooldown - dt_scale)
         low = self.hero.health < self.hero.max_health * settings.ET_LOW_HEALTH_RATIO
-        if self.et is None and self._et_cooldown == 0 and low and self.hero.is_alive:
+        if self.et is None and self._et_cooldown <= 0 and low and self.hero.is_alive:
             self.et = Spawner.et()
             self.entities.append(self.et)
             self._et_cooldown = settings.ET_RESPAWN_FRAMES
             self._set_msg("apareceu o ET de Varginha! Acerte-o para ganhar vida!", 120)
+
 
     def _handle_specials(self):
         """Resolve tiros no ET (solta coracao) e a coleta do coracao."""

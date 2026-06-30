@@ -43,6 +43,6 @@ class Entity(ABC):
         return self.hitbox.colliderect(other.hitbox)
 
     @abstractmethod
-    def update(self):
+    def update(self, dt_scale=1.0):
         """Atualiza a posicao/estado da entidade a cada frame."""
         raise NotImplementedError

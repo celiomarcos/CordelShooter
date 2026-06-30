@@ -19,10 +19,11 @@ class Scenery(Entity):
         self.speed = speed
         self.rect.top = offset_y
 
-    def update(self):
+    def update(self, dt_scale=1.0):
         if self.speed == 0:
             return
-        self.rect.y += self.speed
+        self.rect.y += round(self.speed * dt_scale)
         # quando a copia sai por baixo, reposiciona acima da outra
         if self.rect.top >= settings.WIN_HEIGHT:
             self.rect.bottom = 0
+
