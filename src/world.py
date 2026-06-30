@@ -167,8 +167,22 @@ class World:
         self._msg_timer = frames
 
     def _draw(self, clock):
-        for layer in self.background:
-            self.window.blit(layer.surf, layer.rect)
+        # 1. Desenha o céu estático de fundo (layer 0)
+        self.window.blit(self.background[0].surf, self.background[0].rect)
+
+        # 2. Desenha as nuvens em movimento (layers 1 e 2) apenas no céu (acima do horizonte)
+        self.window.set_clip(pygame.Rect(0, 0, settings.WIN_WIDTH, settings.HORIZON_Y))
+        self.window.blit(self.background[1].surf, self.background[1].rect)
+        self.window.blit(self.background[2].surf, self.background[2].rect)
+
+        # 3. Desenha o chão da caatinga (layers 3 e 4) apenas no solo (abaixo do horizonte)
+        self.window.set_clip(pygame.Rect(0, settings.HORIZON_Y, settings.WIN_WIDTH, settings.WIN_HEIGHT - settings.HORIZON_Y))
+        self.window.blit(self.background[3].surf, self.background[3].rect)
+        self.window.blit(self.background[4].surf, self.background[4].rect)
+
+        # Reseta a área de clip para renderizar os personagens, tiros e HUD normalmente
+        self.window.set_clip(None)
+
         for ent in self.entities:
             if ent is self.hero and self.hero.is_invincible:
                 if (self.hero.invincible_timer // 6) % 2 == 0:
@@ -177,6 +191,7 @@ class World:
                 self.window.blit(ent.surf, ent.rect)
         self._draw_hud(clock)
         pygame.display.flip()
+
 
 
     def _draw_hud(self, clock):
