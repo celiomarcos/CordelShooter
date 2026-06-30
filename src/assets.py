@@ -30,6 +30,7 @@ REQUIRED = (
     "cuca.png", "monster_bullet.png", "boss_bullet.png", "et.png", "life.png",
     "bg_sky_morning.png", "bg_sky_afternoon.png", "bg_sky_night.png",
     "bg_caatinga_morning.png", "bg_caatinga_afternoon.png", "bg_caatinga_night.png",
+    "bg_clouds_morning.png", "bg_clouds_afternoon.png", "bg_clouds_night.png",
     "menu_bg.png", "ranking_bg.png",
 )
 
