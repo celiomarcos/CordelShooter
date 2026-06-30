@@ -26,8 +26,10 @@ class ET(Entity):
         self.rect.x += round(self.vx * dt_scale)
         self.rect.centery = int(self._y0 + math.sin(self._t / 16.0) * 10)
         # saiu da tela: desaparece
-        if self.rect.right < -10 or self.rect.left > settings.WIN_WIDTH + 10:
+        if (self.vx > 0 and self.rect.left > settings.WIN_WIDTH) or \
+           (self.vx < 0 and self.rect.right < 0):
             self.health = 0
+
 
 
 class LifeBonus(Entity):

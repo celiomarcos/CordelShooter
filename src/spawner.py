@@ -49,8 +49,14 @@ class Spawner:
     @staticmethod
     def random_monster():
         name = random.choice(settings.MONSTERS)
-        x = random.randint(40, settings.WIN_WIDTH - 40)
-        return Monster(name, (x, -20))
+        # Margens calculadas com base na amplitude de oscilação e largura do sprite:
+        # Saci (amp=26, larg=40 -> margem=46), Boitatá (amp=44, larg=48 -> margem=68)
+        margins = {"saci": 50, "mula": 35, "boitata": 75}
+        margin = margins.get(name, 40)
+        x = random.randint(margin, settings.WIN_WIDTH - margin)
+        # Nace totalmente fora da tela (y = -30 garante bottom <= 0 para todos)
+        return Monster(name, (x, -30))
+
 
     @staticmethod
     def boss():
