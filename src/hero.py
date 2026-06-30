@@ -32,8 +32,9 @@ class Hero(Entity):
         left = keys[pygame.K_LEFT] or keys[pygame.K_a]
         right = keys[pygame.K_RIGHT] or keys[pygame.K_d]
 
-        if up and self.rect.top > 0:
+        if up and self.rect.top > settings.HORIZON_Y:
             self.rect.y -= round(self.speed * dt_scale)
+
         if down and self.rect.bottom < settings.WIN_HEIGHT:
             self.rect.y += round(self.speed * dt_scale)
         if left and self.rect.left > 0:
