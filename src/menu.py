@@ -102,15 +102,19 @@ class Menu:
             cx = settings.WIN_WIDTH // 2
             hud.draw_text(self.window, "TOP 10 - RANKING", 40,
                           settings.COLOR_YELLOW, center=(cx, 60), bold=True)
-            hud.draw_text(self.window, "NOME           PONTOS        DATA", 20,
-                          settings.COLOR_ORANGE, center=(cx, 120))
+            hud.draw_text(self.window, "NOME", 20, settings.COLOR_ORANGE, topleft=(cx - 200, 120), bold=True)
+            hud.draw_text(self.window, "PONTOS", 20, settings.COLOR_ORANGE, topleft=(cx - 20, 120), bold=True)
+            hud.draw_text(self.window, "DATA", 20, settings.COLOR_ORANGE, topleft=(cx + 100, 120), bold=True)
             if not rows:
                 hud.draw_text(self.window, "Nenhuma pontuacao ainda. Jogue!", 22,
                               settings.COLOR_WHITE, center=(cx, 200))
             for i, (name, score, played_at) in enumerate(rows):
-                line = f"{name:<8} {score:>7}     {played_at}"
-                hud.draw_text(self.window, line, 20, settings.COLOR_WHITE,
-                              center=(cx, 160 + i * 30))
+                hud.draw_text(self.window, name, 20, settings.COLOR_WHITE,
+                              topleft=(cx - 200, 160 + i * 30))
+                hud.draw_text(self.window, str(score), 20, settings.COLOR_WHITE,
+                              topleft=(cx - 20, 160 + i * 30))
+                hud.draw_text(self.window, played_at, 20, settings.COLOR_WHITE,
+                              topleft=(cx + 100, 160 + i * 30))
             hud.draw_text(self.window, "Esc - Voltar ao menu", 18,
                           settings.COLOR_WHITE, center=(cx, settings.WIN_HEIGHT - 30))
             pygame.display.flip()
