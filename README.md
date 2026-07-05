@@ -13,11 +13,36 @@ e Boitatá) e, ao final da horda, encara a chefe **Cuca**.
 | Espaço | Atirar |
 | Enter | Confirmar (menu / telas) |
 | Esc | Voltar / Sair |
+| 1 / 2 / 3 | Trocar o período do dia (manhã / tarde / noite) |
 
 - **Desafio:** sobreviver à horda de monstros que descem atirando.
 - **Condição de vitória:** derrotar a Cuca (chefe que aparece após a horda).
 - **Condição de derrota:** a barra de vida do herói chegar a zero.
 - As pontuações de vitória são salvas em um **ranking** (SQLite) acessível pelo menu.
+
+## Destaques visuais e técnicos
+
+- **Chão pseudo-3D estilo Penguin Adventure (MSX, 1986):** o solo da caatinga
+  é desenhado em faixas horizontais com listras alternadas em perspectiva
+  (`z = 1/t`) — largas e rápidas perto do jogador, finas e lentas rumo ao
+  ponto de fuga —, simulando movimento para frente sem nenhum cálculo 3D real.
+  Uma **névoa de distância** funde as listras rente ao horizonte, eliminando
+  cintilação e dando profundidade atmosférica.
+- **Adereços da caatinga em pseudo-3D:** mandacarus, arbustos secos e pedras
+  nascem minúsculos no ponto de fuga, crescem ao se aproximar e escapam pelas
+  laterais da tela, presos à mesma "esteira" de profundidade do chão.
+- **Períodos do dia:** o cenário (céu, chão, nuvens e adereços) muda de paleta
+  conforme o relógio do computador — manhã, tarde ou noite — e pode ser
+  alternado em jogo pelas teclas 1/2/3.
+- **Nuvens procedurais dinâmicas:** geradas em tempo de execução, rolam em
+  direção ao horizonte com parallax, tanto no menu quanto na fase.
+- **Trilha sonora e efeitos:** música de fundo e SFX de tiro, dano e bônus via
+  `pygame.mixer`.
+- **Delta time:** velocidades e temporizadores escalados pelo tempo real do
+  frame, mantendo o ritmo do jogo estável em qualquer máquina.
+- **Easter eggs:** o ET de Varginha aparece para socorrer o herói com pouca
+  vida — e dizem que um código famoso digitado no menu desbloqueia o
+  *Modo Cangaço*...
 
 ## Executar a partir do código-fonte
 
@@ -64,7 +89,12 @@ CordelShooter/
     ├── monster.py          # monstros do folclore
     ├── boss.py             # chefe (Cuca)
     ├── bullet.py           # projéteis
-    ├── scenery.py          # cenário com rolagem (parallax)
+    ├── scenery.py          # céu, chão pseudo-3D e adereços da caatinga
+    ├── clouds.py           # nuvens procedurais dinâmicas
+    ├── specials.py         # ET de Varginha e bônus de vida
+    ├── sounds.py           # música de fundo e efeitos sonoros
+    ├── cheats.py           # estado dos easter eggs
+    ├── konami.py           # detector de sequência de teclas no menu
     ├── spawner.py          # fábrica de entidades (Factory)
     ├── arbiter.py          # colisões e pontuação (Mediator)
     ├── ranking.py          # ranking persistido em SQLite (Proxy)
@@ -81,31 +111,28 @@ conceitos da disciplina (classe abstrata e herança, padrões Factory, Mediator 
 Proxy), mas o tema, os sprites, a mecânica (rolagem vertical com chefe) e a
 implementação são próprios.
 
-## Implementações Futuras
+## Melhorias já implementadas
 
-Com base em uma revisão detalhada do código-fonte e da arquitetura do jogo, foram mapeadas as seguintes sugestões de melhorias estruturais, visuais e de jogabilidade para futuras versões:
+As sugestões mapeadas na revisão de código anterior foram todas incorporadas:
 
-1. **Sistema de Invencibilidade Temporária (i-frames) para o Herói**:
-   * **Objetivo**: Evitar mortes instantâneas por colisão contínua ou rajadas de tiros acumulados em poucos frames.
-   * **Ideia**: Conceder ao herói um timer de imunidade temporária (ex: 60 frames / 1 segundo) após receber dano, fazendo seu sprite piscar na tela e ignorando novas colisões de dano nesse intervalo.
+1. **Invencibilidade temporária (i-frames)** — após receber dano, o herói fica
+   imune por ~1 segundo (`INVINCIBILITY_FRAMES`) com o sprite piscando.
+2. **Tabela de ranking alinhada** — Nome, Pontos e Data são renderizados em
+   colunas de coordenada X fixa na tela de Top 10.
+3. **Gerenciador de contexto no banco** — `ScoreDB` implementa
+   `__enter__`/`__exit__`, permitindo `with ScoreDB() as db:` com fechamento
+   garantido da conexão SQLite.
+4. **Importações organizadas (PEP 8)** — imports movidos para o topo dos
+   módulos.
+5. **Trilha sonora e SFX** — música de fundo em loop e efeitos de tiro, dano e
+   bônus via `pygame.mixer` (`sounds.py`).
+6. **Delta time** — o `dt` de `clock.tick(settings.FPS)` escala todas as
+   velocidades e temporizadores, desacoplando o jogo da taxa de quadros.
 
-2. **Alinhamento Preciso da Tabela de Ranking**:
-   * **Objetivo**: Garantir que as colunas na tela de Top 10 se alinhem perfeitamente de forma vertical.
-   * **Ideia**: Renderizar os campos de Nome, Pontuação e Data separadamente no HUD em coordenadas X fixas (ex: `cx - 220`, `cx - 40` e `cx + 80`), em vez de desenhar uma única string formatada com espaços em uma fonte de tamanho variável (Verdana).
+## Implementações futuras
 
-3. **Gerenciador de Contexto para a Classe de Banco de Dados (`ScoreDB`)**:
-   * **Objetivo**: Garantir o fechamento correto das conexões com o SQLite e evitar concorrência ou vazamento de recursos.
-   * **Ideia**: Implementar os métodos `__enter__` e `__exit__` em `ScoreDB` (`ranking.py`), permitindo a utilização segura e Pythonica através de blocos `with ScoreDB() as db:`.
-
-4. **Refatoração e Limpeza de Importações (PEP 8)**:
-   * **Objetivo**: Tornar o código mais limpo e legível.
-   * **Ideia**: Mover as importações inline/tardias encontradas em `spawner.py` (como `random` e `ET`) para o topo do arquivo, uma vez que não há risco real de importação circular.
-
-5. **Trilha Sonora e Efeitos Sonoros (SFX)**:
-   * **Objetivo**: Aumentar a imersão e dar feedback sensorial ao jogador.
-   * **Ideia**: Utilizar o módulo `pygame.mixer` para tocar uma música de fundo com sonoridade de sertanejo/cordel ou estilo 8-bit em loop, além de efeitos sonoros rápidos ao atirar, acertar inimigos, coletar vida ou no fim do jogo.
-
-6. **Desacoplamento de Frames por Segundo (Delta Time)**:
-   * **Objetivo**: Tornar a velocidade de movimentação e do jogo consistente em qualquer computador, independente da taxa de quadros (FPS) que o computador consiga processar.
-   * **Ideia**: Obter o tempo delta (`dt`) a partir de `clock.tick(settings.FPS)` e utilizá-lo como multiplicador de todas as velocidades e temporizadores físicos do jogo.
+- Fases múltiplas com dificuldade progressiva e novos chefes do folclore.
+- Obstáculos no chão pseudo-3D que interagem com o herói (desviar/colidir),
+  aproximando ainda mais a jogabilidade do Penguin Adventure.
+- Power-ups de tiro (leque, rajada, cadência) soltos pelos monstros.
 
