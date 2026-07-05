@@ -58,6 +58,20 @@ LIFE = "life"
 CAATINGA_SPEED = 1
 
 # ----------------------------------------------------------------------
+# Chao pseudo-3D (tecnica do Penguin Adventure, MSX 1986)
+# ----------------------------------------------------------------------
+GROUND_SPEED = 1.6         # linhas de textura percorridas por frame
+GROUND_BAND_H = 2          # altura de cada faixa na tela (px)
+GROUND_FOCAL = 85          # "distancia focal": alcance da textura em profundidade
+GROUND_DEPTH_EPS = 0.12    # limita a profundidade no horizonte (evita shimmer)
+GROUND_WIDTH_FAR = 1.0     # largura da faixa no horizonte (x largura da tela)
+GROUND_WIDTH_NEAR = 1.35   # largura da faixa na base da tela
+
+# adereços da caatinga (cactos, arbustos, pedras) vindo do horizonte
+PROP_COUNT = 14            # quantos adereços simultaneos no campo
+PROP_SPREAD = 0.78         # abertura lateral no plano proximo (x largura da tela)
+
+# ----------------------------------------------------------------------
 # Atributos das entidades
 # ----------------------------------------------------------------------
 SPEED = {

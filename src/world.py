@@ -183,7 +183,7 @@ class World:
         # Altera imagens dos fundos e chao
         self.background[0].change_image(f"bg_sky_{period}")
         self.background[1].change_image(f"bg_caatinga_{period}")
-        self.background[2].change_image(f"bg_caatinga_{period}")
+        self.background[2].set_period(period)
         # Altera nuvens
         self.cloud_system.setup(period)
         # Feedback na tela
@@ -197,14 +197,14 @@ class World:
         # 2. Desenha as nuvens procedurais dinâmicas apenas no céu (acima do horizonte)
         self.window.set_clip(pygame.Rect(0, 0, settings.WIN_WIDTH, settings.HORIZON_Y))
         self.cloud_system.draw(self.window)
-
-        # 3. Desenha o chão da caatinga (layers 1 e 2) apenas no solo (abaixo do horizonte)
-        self.window.set_clip(pygame.Rect(0, settings.HORIZON_Y, settings.WIN_WIDTH, settings.WIN_HEIGHT - settings.HORIZON_Y))
-        self.window.blit(self.background[1].surf, self.background[1].rect)
-        self.window.blit(self.background[2].surf, self.background[2].rect)
-
-        # Reseta a área de clip para renderizar os personagens, tiros e HUD normalmente
         self.window.set_clip(None)
+
+        # 3. Desenha o chão da caatinga em perspectiva pseudo-3D (faixas
+        # escaladas linha a linha, do horizonte ate a base da tela)
+        self.background[1].draw(self.window)
+
+        # 4. Cactos, arbustos e pedras vindo do horizonte (pseudo-3D)
+        self.background[2].draw(self.window)
 
         for ent in self.entities:
             if ent is self.hero and self.hero.is_invincible:

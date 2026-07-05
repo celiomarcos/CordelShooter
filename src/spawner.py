@@ -13,7 +13,7 @@ from src import settings
 from src.boss import Boss
 from src.hero import Hero
 from src.monster import Monster
-from src.scenery import Scenery
+from src.scenery import PerspectiveGround, PropField, Scenery
 from src.specials import ET
 
 
@@ -21,15 +21,14 @@ class Spawner:
     @staticmethod
     def background():
         """Monta o cenario do periodo atual (manha/tarde/noite, pelo relogio).
-        Ceu parado + chao da caatinga rolando."""
+        Ceu parado + chao pseudo-3D + adereços da caatinga vindo do horizonte."""
         period = settings.current_period()
         sky = f"bg_sky_{period}"
         caatinga = f"bg_caatinga_{period}"
-        h = settings.WIN_HEIGHT
         return [
             Scenery(sky, 0, 0),
-            Scenery(caatinga, settings.CAATINGA_SPEED, 0),
-            Scenery(caatinga, settings.CAATINGA_SPEED, -h),
+            PerspectiveGround(caatinga, settings.GROUND_SPEED),
+            PropField(period),
         ]
 
 
