@@ -66,6 +66,8 @@ GROUND_FOCAL = 85          # "distancia focal": alcance da textura em profundida
 GROUND_DEPTH_EPS = 0.12    # limita a profundidade no horizonte (evita shimmer)
 GROUND_WIDTH_FAR = 1.0     # largura da faixa no horizonte (x largura da tela)
 GROUND_WIDTH_NEAR = 1.35   # largura da faixa na base da tela
+GROUND_STRIPE_DEPTH = 12.0 # grossura das listras do chao (unidades de profundidade)
+GROUND_HAZE_T = 0.18       # fracao do chao (a partir do horizonte) com nevoa de distancia
 
 # adereços da caatinga (cactos, arbustos, pedras) vindo do horizonte
 PROP_COUNT = 18            # quantos adereços simultaneos no campo

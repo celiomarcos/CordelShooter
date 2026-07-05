@@ -51,6 +51,7 @@ class PerspectiveGround:
         self.distance = 0.0  # unidades virtuais já percorridas
         self.colors = self._get_colors(name)
         self._build_bands()
+        self._rebuild_band_colors()
 
     def _get_colors(self, name):
         """Retorna uma tupla com (Cor Principal, Cor Secundária) baseada no período."""
@@ -80,31 +81,53 @@ class PerspectiveGround:
                            (settings.GROUND_WIDTH_NEAR - settings.GROUND_WIDTH_FAR) * t))
             self.bands.append((y, depth_off, width))
 
+    def _rebuild_band_colors(self):
+        """Pre-calcula o par de cores de cada faixa, com nevoa de distancia.
+
+        Nas faixas mais proximas do horizonte as duas cores convergem para
+        a media entre elas: alem de dar profundidade atmosferica, elimina o
+        flicker das listras finas ao longe (la, cada faixa de tela pula
+        varias listras de uma vez e a alternancia viraria ruido).
+        """
+        c0, c1 = self.colors
+        avg = tuple((a + b) // 2 for a, b in zip(c0, c1))
+        n = len(self.bands)
+        self.band_colors = []
+        for i in range(n):
+            t = (i + 1) / n
+            if t < settings.GROUND_HAZE_T:
+                f = 1.0 - t / settings.GROUND_HAZE_T  # 1 no horizonte -> 0
+                h0 = tuple(round(a + (m - a) * f) for a, m in zip(c0, avg))
+                h1 = tuple(round(a + (m - a) * f) for a, m in zip(c1, avg))
+                self.band_colors.append((h0, h1))
+            else:
+                self.band_colors.append((c0, c1))
+
     def update(self, dt_scale=1.0):
         self.distance += self.speed * dt_scale
 
     def draw(self, surface):
         cx = settings.WIN_WIDTH // 2
         band_h = settings.GROUND_BAND_H
-        
+
         # Fundo base (opcional, garante que tudo fique preenchido)
         pygame.draw.rect(surface, self.colors[1], (0, settings.HORIZON_Y, settings.WIN_WIDTH, settings.WIN_HEIGHT - settings.HORIZON_Y))
 
-        for y, depth_off, width in self.bands:
-            # O offset de profundidade cresce para o horizonte. 
+        for (y, depth_off, width), (c0, c1) in zip(self.bands, self.band_colors):
+            # O offset de profundidade cresce para o horizonte.
             # Somado com a distância da câmera, criamos o índice da listra.
-            # O divisor (12.0) define quão "grossas" são as listras na caatinga.
-            stripe_idx = int((self.distance + depth_off) / 12.0)
-            
+            stripe_idx = int((self.distance + depth_off) / settings.GROUND_STRIPE_DEPTH)
+
             # Alterna as duas cores para simular movimento contínuo
-            color = self.colors[0] if stripe_idx % 2 == 0 else self.colors[1]
-            
+            color = c0 if stripe_idx % 2 == 0 else c1
+
             rect = (cx - width // 2, y, width, band_h)
             pygame.draw.rect(surface, color, rect)
 
     def change_image(self, name):
         """Muda o esquema de cores quando o período muda."""
         self.colors = self._get_colors(name)
+        self._rebuild_band_colors()
 
 
 def _depth_to_t(dist):
