@@ -68,7 +68,7 @@ GROUND_WIDTH_FAR = 1.0     # largura da faixa no horizonte (x largura da tela)
 GROUND_WIDTH_NEAR = 1.35   # largura da faixa na base da tela
 
 # adereços da caatinga (cactos, arbustos, pedras) vindo do horizonte
-PROP_COUNT = 14            # quantos adereços simultaneos no campo
+PROP_COUNT = 18            # quantos adereços simultaneos no campo
 PROP_SPREAD = 0.78         # abertura lateral no plano proximo (x largura da tela)
 
 # ----------------------------------------------------------------------

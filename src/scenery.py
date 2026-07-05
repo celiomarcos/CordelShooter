@@ -39,29 +39,31 @@ class Scenery(Entity):
 class PerspectiveGround:
     """Chao pseudo-3D no estilo Penguin Adventure (MSX, 1986).
 
-    O solo abaixo do horizonte e desenhado em faixas horizontais. Cada
-    faixa amostra uma linha da textura da caatinga numa profundidade
-    z = 1/t (t cresce do horizonte ate a base da tela) e e escalada para
-    uma largura maior quanto mais perto da base, formando o trapezio
-    caracteristico. Avancar self.distance faz as linhas fluirem do
-    horizonte para o jogador: devagar ao longe, rapido ao perto - a
-    ilusao de movimento para frente sem nenhum calculo 3D real.
+    Versão Geométrica (Listras):
+    Desenha listras alternadas coloridas baseadas na perspectiva,
+    eliminando o problema de cintilação (aliasing) de texturas e 
+    melhorando muito a performance. O visual fica perfeitamente
+    alinhado com o estilo 8-bits original!
     """
 
     def __init__(self, name, speed):
-        from src.assets import load_image
         self.speed = speed
-        self.distance = 0.0  # linhas de textura ja percorridas
-        self.texture = load_image(f"{name}.png").convert()
+        self.distance = 0.0  # unidades virtuais já percorridas
+        self.colors = self._get_colors(name)
         self._build_bands()
 
-    def _build_bands(self):
-        """Pre-calcula (y, offset de profundidade, largura) de cada faixa.
+    def _get_colors(self, name):
+        """Retorna uma tupla com (Cor Principal, Cor Secundária) baseada no período."""
+        if "morning" in name:
+            return ((190, 160, 90), (170, 140, 75))
+        elif "afternoon" in name:
+            return ((180, 140, 80), (160, 120, 65))
+        elif "night" in name:
+            return ((30, 25, 45), (40, 35, 55))
+        return ((190, 160, 90), (170, 140, 75))
 
-        So depende da geometria da tela, entao e feito uma unica vez.
-        EPS limita a profundidade maxima para a textura nao "tremer"
-        rente ao horizonte.
-        """
+    def _build_bands(self):
+        """Pre-calcula (y, offset de profundidade, largura) de cada faixa."""
         band_h = settings.GROUND_BAND_H
         ground_h = settings.WIN_HEIGHT - settings.HORIZON_Y
         n = ground_h // band_h
@@ -82,19 +84,27 @@ class PerspectiveGround:
         self.distance += self.speed * dt_scale
 
     def draw(self, surface):
-        tex_w = self.texture.get_width()
-        tex_h = self.texture.get_height()
-        band_h = settings.GROUND_BAND_H
         cx = settings.WIN_WIDTH // 2
+        band_h = settings.GROUND_BAND_H
+        
+        # Fundo base (opcional, garante que tudo fique preenchido)
+        pygame.draw.rect(surface, self.colors[1], (0, settings.HORIZON_Y, settings.WIN_WIDTH, settings.WIN_HEIGHT - settings.HORIZON_Y))
+
         for y, depth_off, width in self.bands:
-            v = int(self.distance + depth_off) % tex_h
-            row = self.texture.subsurface((0, v, tex_w, 1))
-            strip = pygame.transform.scale(row, (width, band_h))
-            surface.blit(strip, (cx - width // 2, y))
+            # O offset de profundidade cresce para o horizonte. 
+            # Somado com a distância da câmera, criamos o índice da listra.
+            # O divisor (12.0) define quão "grossas" são as listras na caatinga.
+            stripe_idx = int((self.distance + depth_off) / 12.0)
+            
+            # Alterna as duas cores para simular movimento contínuo
+            color = self.colors[0] if stripe_idx % 2 == 0 else self.colors[1]
+            
+            rect = (cx - width // 2, y, width, band_h)
+            pygame.draw.rect(surface, color, rect)
 
     def change_image(self, name):
-        from src.assets import load_image
-        self.texture = load_image(f"{name}.png").convert()
+        """Muda o esquema de cores quando o período muda."""
+        self.colors = self._get_colors(name)
 
 
 def _depth_to_t(dist):
@@ -130,6 +140,16 @@ _PROP_COLORS = {
 }
 
 
+def _ground_shadow(s):
+    """Elipse escura na base do sprite para assentar o objeto no chao."""
+    w, h = s.get_size()
+    shadow = pygame.Surface((w, h), pygame.SRCALPHA)
+    sh = max(6, h // 8)
+    pygame.draw.ellipse(shadow, (0, 0, 0, 70), (w // 6, h - sh, w - w // 3, sh))
+    shadow.blit(s, (0, 0))
+    return shadow
+
+
 def _make_cactus(pal, tall=True):
     """Mandacaru: tronco vertical com dois bracos e nervuras claras."""
     w, h = (64, 118) if tall else (42, 66)
@@ -155,7 +175,7 @@ def _make_cactus(pal, tall=True):
     # nervuras do tronco
     for lx in (trunk.centerx - tw // 4, trunk.centerx + tw // 4):
         pygame.draw.line(s, hi, (lx, trunk.top + 4), (lx, trunk.bottom - 4), 1)
-    return s
+    return _ground_shadow(s)
 
 
 def _make_bush(pal):
@@ -166,7 +186,7 @@ def _make_bush(pal):
         pygame.draw.circle(s, pal["bush"], (cx, cy), r)
     for cx, cy, r in ((24, 15, 4), (34, 19, 3), (16, 20, 3)):
         pygame.draw.circle(s, pal["bush_hi"], (cx, cy), r)
-    return s
+    return _ground_shadow(s)
 
 
 def _make_rock(pal):
@@ -175,7 +195,7 @@ def _make_rock(pal):
     s = pygame.Surface((w, h), pygame.SRCALPHA)
     pygame.draw.ellipse(s, pal["rock"], (0, 4, w, h - 4))
     pygame.draw.ellipse(s, pal["rock_hi"], (8, 6, w // 2, h // 3))
-    return s
+    return _ground_shadow(s)
 
 
 class GroundProp:
